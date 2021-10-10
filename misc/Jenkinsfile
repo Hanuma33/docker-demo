@@ -1,5 +1,9 @@
 node {
    def commit_id
+   environment {
+    registry = "hanuma/Jenkins-NodeJs-Pipe"
+    registryCredential = ‘dockerhub’
+  }
    stage('Preparation') {
      checkout scm
      sh "git rev-parse --short HEAD > .git/commit-id"                        
@@ -11,9 +15,11 @@ node {
        sh 'npm test'
      }
    }
-   stage('docker build/push') {
-     docker.withRegistry('https://hub.docker.com/', 'dockerhub') {
-       def app = docker.build("hanuma33/docker-nodejs-demo:${commit_id}", '.').push()
-     }
-   }
+   stage('Building image') {
+      steps{
+        script {
+          docker.build registry + ":$BUILD_NUMBER"
+        }
+      }
+    }
 }
